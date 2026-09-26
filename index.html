@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>无限制自适应缩放黑胶播放器</title>
+  <title>歌单与单行歌词跟随黑胶播放器</title>
   <style>
     * {
       box-sizing: border-box;
@@ -22,7 +22,7 @@
       align-items: center;
     }
 
-    /* 最外层容器：四周留出充分的 padding 空间，给外阴影自然渐变过度，绝不让边界切断阴影 */
+    /* 最外层容器：四周留出充分的 padding 空间，给外阴影自然渐变过度 */
     .player-container {
       width: 100%;
       height: 100%;
@@ -30,10 +30,10 @@
       justify-content: center;
       align-items: center;
       container-type: inline-size;
-      padding: 6cqw 8cqw 6cqw 6cqw; /* 特别加大右侧Padding，确保右侧阴影完全展示 */
+      padding: 6cqw 8cqw 6cqw 6cqw;
     }
 
-    /* 最外层大底座卡片 - 宽度适应容器并留出阴影空间 */
+    /* 最外层大底座卡片 */
     .outer-card {
       width: 100%;
       padding: 3.5cqw;
@@ -132,24 +132,39 @@
       min-width: 0;
     }
 
-    /* 歌曲与歌手信息 */
+    /* 歌名与单行歌词区域 */
     .song-title {
       font-size: 2.8cqw;
-      color: #a4b5cb;
-      letter-spacing: 0.2cqw;
-      font-weight: 500;
+      color: #8da4c4;
+      letter-spacing: 0.15cqw;
+      font-weight: 600;
       margin-bottom: 0.5cqw;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
+      text-align: center;
     }
 
-    .artist-name {
-      font-size: 2.2cqw;
-      color: #c0cfdf;
-      letter-spacing: 0.15cqw;
+    /* 单行跟随歌词 */
+    .lyric-line {
+      font-size: 2cqw;
+      color: #a0b2c6;
+      letter-spacing: 0.1cqw;
       margin-bottom: 1.8cqw;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      text-align: center;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      height: 2.6cqw;
+      line-height: 2.6cqw;
+    }
+
+    .lyric-line.changing {
+      opacity: 0;
+      transform: translateY(2px);
     }
 
     /* 波形线 SVG 容器 */
@@ -221,7 +236,7 @@
     }
 
     .progress-fill {
-      width: 35%;
+      width: 0%;
       height: 100%;
       background: #7db0e8;
       border-radius: 0.5cqw;
@@ -294,8 +309,10 @@
         </div>
 
         <div class="right-content">
-          <div class="song-title">wave of w music</div>
-          <div class="artist-name">Music Trainer</div>
+          <!-- 歌名 -->
+          <div class="song-title" id="songTitle">wave of w music</div>
+          <!-- 动态单行跟随歌词 -->
+          <div class="lyric-line" id="lyricLine">~ 正在加载歌词 ~</div>
 
           <div class="waveform-box">
             <svg viewBox="0 0 200 40" preserveAspectRatio="none">
@@ -305,7 +322,7 @@
           </div>
 
           <div class="controls-row">
-            <button class="btn-icon" aria-label="上一首">
+            <button class="btn-icon" id="prevBtn" aria-label="上一首">
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/>
               </svg>
@@ -317,7 +334,7 @@
               </svg>
             </button>
 
-            <button class="btn-icon" aria-label="下一首">
+            <button class="btn-icon" id="nextBtn" aria-label="下一首">
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>
               </svg>
@@ -345,20 +362,105 @@
   </div>
 
   <script>
+    // ===== 歌单与歌词数据配置 =====
+    const playlist = [
+      {
+        title: "Wave of W Music",
+        artist: "Music Trainer",
+        duration: 257, // 04:17
+        lyrics: [
+          { time: 0, text: "♪ (纯音乐轻柔前奏)" },
+          { time: 12, text: "微风吹过海浪的记忆" },
+          { time: 25, text: "旋律在夜色中缓缓升起" },
+          { time: 42, text: "每一次跳动的音符 都是对你的思念" },
+          { time: 65, text: "就像海浪拍打着海岸 永不停息" },
+          { time: 90, text: "Wave of w music, 唱出心中的温柔" },
+          { time: 120, text: "让时光停留在这一刻" },
+          { time: 155, text: "跟随着旋律 漫步在星空之下" },
+          { time: 190, text: "无论风雨 音乐始终陪伴在你身边" },
+          { time: 230, text: "♪ (渐弱尾奏)" }
+        ]
+      },
+      {
+        title: "晴天 (Cover)",
+        artist: "Jay Chou",
+        duration: 269, // 04:29
+        lyrics: [
+          { time: 0, text: "故事的小黄花 从出生那年就飘着" },
+          { time: 15, text: "童年的荡秋千 随记忆一直晃到现在" },
+          { time: 32, text: "Re So So Si Do Si La So La Si Si Si Si La Si La So" },
+          { time: 50, text: "吹着前奏望着天空 我想起花瓣试着掉落" },
+          { time: 75, text: "为你烘托 刮风这天我试过握着你手" },
+          { time: 105, text: "但偏偏 雨渐渐 大到我看你不见" },
+          { time: 140, text: "还要多久 我才能在你身边" },
+          { time: 180, text: "等到放晴的那天 也许我会比较好一点" }
+        ]
+      }
+    ];
+
+    let currentTrackIndex = 0;
+    let isPlaying = true;
+    let phase = 0;
+    let currentProgress = 0; // 0 ~ 1
+    let lastLyricText = "";
+
+    // DOM 元素
     const playerCard = document.getElementById('playerCard');
     const playBtn = document.getElementById('playBtn');
     const playIcon = document.getElementById('playIcon');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const songTitleEl = document.getElementById('songTitle');
+    const lyricLineEl = document.getElementById('lyricLine');
     const wavePath = document.getElementById('wavePath');
     const wavePathBg = document.getElementById('wavePathBg');
     const progressFill = document.getElementById('progressFill');
     const progressBg = document.getElementById('progressBg');
     const currentTimeEl = document.getElementById('currentTime');
+    const durationEl = document.getElementById('duration');
 
-    let isPlaying = true;
-    let phase = 0;
-    let currentProgress = 0.35;
-    const totalDuration = 257;
+    // 格式化时间
+    function formatTime(secs) {
+      const mins = Math.floor(secs / 60).toString().padStart(2, '0');
+      const s = Math.floor(secs % 60).toString().padStart(2, '0');
+      return `${mins}:${s}`;
+    }
 
+    // 加载当前歌曲信息
+    function loadTrack(index) {
+      currentTrackIndex = index;
+      const track = playlist[currentTrackIndex];
+      songTitleEl.innerText = track.title;
+      durationEl.innerText = formatTime(track.duration);
+      currentProgress = 0;
+      lastLyricText = "";
+      updateLyrics(0);
+    }
+
+    // 动态跟随更新歌词
+    function updateLyrics(currentSecs) {
+      const track = playlist[currentTrackIndex];
+      let activeLyric = track.lyrics[0].text;
+
+      for (let i = 0; i < track.lyrics.length; i++) {
+        if (currentSecs >= track.lyrics[i].time) {
+          activeLyric = track.lyrics[i].text;
+        } else {
+          break;
+        }
+      }
+
+      if (activeLyric !== lastLyricText) {
+        lastLyricText = activeLyric;
+        lyricLineEl.classList.add('changing');
+        setTimeout(() => {
+          lyricLineEl.innerText = activeLyric;
+          lyricLineEl.classList.remove('changing');
+        }, 150);
+      }
+    }
+
+    // 波形生成算法
     const baseAmplitudes = [
       0, 0, 5, -8, 4, -4, 12, -12, 6, -6, 2, -2, 15, -15, 10, -10,
       5, -5, 18, -18, 8, -8, 4, -4, 12, -12, 6, -6, 2, -2, 10, -10,
@@ -382,17 +484,21 @@
       return d;
     }
 
+    // 主渲染与更新循环
     function updateFrame() {
+      const currentTrack = playlist[currentTrackIndex];
+
       if (isPlaying) {
         phase += 1;
         currentProgress += 0.0003;
         if (currentProgress > 1) currentProgress = 0;
 
         progressFill.style.width = `${(currentProgress * 100).toFixed(1)}%`;
-        const currSecs = Math.floor(currentProgress * totalDuration);
-        const mins = Math.floor(currSecs / 60).toString().padStart(2, '0');
-        const secs = (currSecs % 60).toString().padStart(2, '0');
-        currentTimeEl.innerText = `${mins}:${secs}`;
+        const currSecs = currentProgress * currentTrack.duration;
+        currentTimeEl.innerText = formatTime(currSecs);
+
+        // 实时跟随歌词
+        updateLyrics(currSecs);
       }
 
       const pathData = generateWavePath(phase);
@@ -402,6 +508,7 @@
       requestAnimationFrame(updateFrame);
     }
 
+    // 事件绑定：播放/暂停
     playBtn.addEventListener('click', () => {
       isPlaying = !isPlaying;
       if (isPlaying) {
@@ -413,13 +520,33 @@
       }
     });
 
+    // 事件绑定：上一首 / 下一首
+    prevBtn.addEventListener('click', () => {
+      let newIndex = currentTrackIndex - 1;
+      if (newIndex < 0) newIndex = playlist.length - 1;
+      loadTrack(newIndex);
+    });
+
+    nextBtn.addEventListener('click', () => {
+      let newIndex = (currentTrackIndex + 1) % playlist.length;
+      loadTrack(newIndex);
+    });
+
+    // 事件绑定：点击进度条跳转
     progressBg.addEventListener('click', (e) => {
       const rect = progressBg.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       currentProgress = Math.max(0, Math.min(1, clickX / rect.width));
       progressFill.style.width = `${(currentProgress * 100).toFixed(1)}%`;
+      
+      const currentTrack = playlist[currentTrackIndex];
+      const currSecs = currentProgress * currentTrack.duration;
+      currentTimeEl.innerText = formatTime(currSecs);
+      updateLyrics(currSecs);
     });
 
+    // 初始化
+    loadTrack(0);
     playerCard.classList.add('playing');
     updateFrame();
   </script>
