@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>响应式缩放黑胶播放器</title>
+  <title>无限制自适应缩放黑胶播放器</title>
   <style>
     * {
       box-sizing: border-box;
@@ -22,54 +22,55 @@
       align-items: center;
     }
 
-    /* 整体缩放包裹层：根据窗口/嵌入框宽高度自动计算最佳缩放比例 */
-    .scale-wrapper {
-      width: 380px; /* 基准原始宽度 */
-      height: auto;
+    /* 容器定义：开启容器查询，外部拉多大，内部就缩放多大 */
+    .player-container {
+      width: 100%;
+      height: 100%;
       display: flex;
       justify-content: center;
       align-items: center;
-      transform-origin: center center;
+      container-type: inline-size;
+      padding: 1.5cqw;
     }
 
     /* 最外层大底座卡片 */
     .outer-card {
       width: 100%;
-      padding: 14px;
+      padding: 3.5cqw;
       background: #f3f6fa;
-      border-radius: 22px;
+      border-radius: 5cqw;
       box-shadow: 
-        10px 10px 20px rgba(166, 180, 200, 0.5),
-        -10px -10px 20px rgba(255, 255, 255, 0.95);
+        1.5cqw 1.5cqw 3cqw rgba(166, 180, 200, 0.5),
+        -1.5cqw -1.5cqw 3cqw rgba(255, 255, 255, 0.95);
       position: relative;
     }
 
     /* 内层主要播放器卡片 */
     .player-card {
       background: #f5f8fc;
-      border-radius: 18px;
-      padding: 18px;
+      border-radius: 4cqw;
+      padding: 4.5cqw;
       box-shadow: 
-        inset 3px 3px 6px rgba(166, 180, 200, 0.25),
-        inset -3px -3px 6px rgba(255, 255, 255, 0.8),
-        5px 8px 16px rgba(166, 180, 200, 0.3);
+        inset 0.8cqw 0.8cqw 1.5cqw rgba(166, 180, 200, 0.25),
+        inset -0.8cqw -0.8cqw 1.5cqw rgba(255, 255, 255, 0.8),
+        1cqw 2cqw 4cqw rgba(166, 180, 200, 0.3);
       display: flex;
       align-items: center;
-      gap: 18px;
+      gap: 4.5cqw;
       position: relative;
     }
 
     /* 左侧唱片外框 */
     .vinyl-wrapper {
-      width: 110px;
-      height: 110px;
+      width: 28cqw;
+      height: 28cqw;
       border-radius: 50%;
       background: #f3f6fa;
-      padding: 4px;
+      padding: 1cqw;
       box-shadow: 
-        4px 4px 8px rgba(166, 180, 200, 0.4),
-        -4px -4px 8px rgba(255, 255, 255, 0.9),
-        inset 1.5px 1.5px 3px rgba(166, 180, 200, 0.2);
+        1cqw 1cqw 2cqw rgba(166, 180, 200, 0.4),
+        -1cqw -1cqw 2cqw rgba(255, 255, 255, 0.9),
+        inset 0.4cqw 0.4cqw 0.8cqw rgba(166, 180, 200, 0.2);
       flex-shrink: 0;
       position: relative;
     }
@@ -84,7 +85,7 @@
         radial-gradient(circle, transparent 38%, rgba(255,255,255,0.4) 39%, transparent 40%),
         radial-gradient(circle, transparent 55%, rgba(255,255,255,0.3) 56%, transparent 57%),
         radial-gradient(circle, #7db3f0 0%, #a2cbf8 45%, #cae3fc 75%, #a8d0f8 100%);
-      box-shadow: 0 3px 8px rgba(120, 160, 210, 0.3);
+      box-shadow: 0 0.8cqw 2cqw rgba(120, 160, 210, 0.3);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -103,20 +104,20 @@
 
     /* 唱片中心金属圆环 */
     .vinyl-center-outer {
-      width: 36px;
-      height: 36px;
+      width: 9cqw;
+      height: 9cqw;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.85);
-      border: 2px solid #82b4ed;
+      border: 0.4cqw solid #82b4ed;
       display: flex;
       justify-content: center;
       align-items: center;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: inset 0 0.2cqw 0.8cqw rgba(0,0,0,0.1);
     }
 
     .vinyl-center-dot {
-      width: 7px;
-      height: 7px;
+      width: 1.8cqw;
+      height: 1.8cqw;
       background: #4881c2;
       border-radius: 50%;
     }
@@ -127,29 +128,34 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      min-width: 0;
     }
 
     /* 歌曲与歌手信息 */
     .song-title {
-      font-size: 11px;
+      font-size: 2.8cqw;
       color: #a4b5cb;
-      letter-spacing: 1px;
+      letter-spacing: 0.2cqw;
       font-weight: 500;
-      margin-bottom: 2px;
+      margin-bottom: 0.5cqw;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
 
     .artist-name {
-      font-size: 9px;
+      font-size: 2.2cqw;
       color: #c0cfdf;
-      letter-spacing: 0.8px;
-      margin-bottom: 8px;
+      letter-spacing: 0.15cqw;
+      margin-bottom: 1.8cqw;
     }
 
     /* 波形线 SVG 容器 */
     .waveform-box {
       width: 100%;
-      height: 28px;
-      margin-bottom: 10px;
+      height: 7cqw;
+      margin-bottom: 2cqw;
       position: relative;
     }
 
@@ -163,8 +169,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 14px;
-      margin-bottom: 12px;
+      gap: 3.5cqw;
+      margin-bottom: 2.5cqw;
     }
 
     .btn-icon {
@@ -175,20 +181,27 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 0;
+    }
+
+    .btn-icon svg {
+      width: 3.2cqw;
+      height: 3.2cqw;
     }
 
     .btn-icon:active {
       transform: scale(0.9);
     }
 
+    /* 主播放/暂停按钮 */
     .btn-main {
-      width: 30px;
-      height: 30px;
+      width: 7.5cqw;
+      height: 7.5cqw;
       border-radius: 50%;
       background: #f5f8fc;
       box-shadow: 
-        3px 3px 6px rgba(166, 180, 200, 0.45),
-        -3px -3px 6px rgba(255, 255, 255, 0.9);
+        0.8cqw 0.8cqw 1.5cqw rgba(166, 180, 200, 0.45),
+        -0.8cqw -0.8cqw 1.5cqw rgba(255, 255, 255, 0.9);
     }
 
     /* 进度条样式 */
@@ -198,10 +211,10 @@
 
     .progress-bar-bg {
       width: 100%;
-      height: 4px;
+      height: 1cqw;
       background: #e2eaf3;
-      border-radius: 2px;
-      box-shadow: inset 1px 1px 2px rgba(166, 180, 200, 0.4);
+      border-radius: 0.5cqw;
+      box-shadow: inset 0.2cqw 0.2cqw 0.5cqw rgba(166, 180, 200, 0.4);
       position: relative;
       cursor: pointer;
     }
@@ -210,63 +223,64 @@
       width: 35%;
       height: 100%;
       background: #7db0e8;
-      border-radius: 2px;
+      border-radius: 0.5cqw;
       position: relative;
     }
 
     .progress-fill::after {
       content: '';
       position: absolute;
-      right: -4px;
-      top: -3px;
-      width: 10px;
-      height: 10px;
+      right: -1cqw;
+      top: -0.8cqw;
+      width: 2.6cqw;
+      height: 2.6cqw;
       background: #ffffff;
       border-radius: 50%;
-      box-shadow: 1px 1px 3px rgba(120, 150, 190, 0.4);
+      box-shadow: 0.3cqw 0.3cqw 0.8cqw rgba(120, 150, 190, 0.4);
     }
 
+    /* 时间文本 */
     .time-labels {
       display: flex;
       justify-content: space-between;
       width: 100%;
-      font-size: 9px;
+      font-size: 2.2cqw;
       color: #bdcbdb;
-      margin-top: 5px;
+      margin-top: 1.2cqw;
       font-weight: 400;
     }
 
+    /* 底部开关键装饰 */
     .bottom-indicator {
-      margin-top: 10px;
+      margin-top: 2.2cqw;
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding-left: 6px;
+      gap: 1.5cqw;
+      padding-left: 1.5cqw;
     }
 
     .small-dot {
-      width: 8px;
-      height: 8px;
+      width: 2cqw;
+      height: 2cqw;
       border-radius: 50%;
       background: #f3f6fa;
       box-shadow: 
-        inset 1px 1px 2px rgba(166, 180, 200, 0.4),
-        inset -1px -1px 2px rgba(255, 255, 255, 0.8);
+        inset 0.3cqw 0.3cqw 0.5cqw rgba(166, 180, 200, 0.4),
+        inset -0.3cqw -0.3cqw 0.5cqw rgba(255, 255, 255, 0.8);
     }
 
     .small-bar {
-      width: 30px;
-      height: 3px;
+      width: 7.5cqw;
+      height: 0.8cqw;
       background: #e2eaf3;
-      border-radius: 2px;
-      box-shadow: inset 1px 1px 2px rgba(166, 180, 200, 0.3);
+      border-radius: 0.5cqw;
+      box-shadow: inset 0.2cqw 0.2cqw 0.5cqw rgba(166, 180, 200, 0.3);
     }
   </style>
 </head>
 <body>
 
-  <!-- 动态响应式缩放容器 -->
-  <div class="scale-wrapper" id="scaleWrapper">
+  <div class="player-container">
     <div class="outer-card">
       <div class="player-card" id="playerCard">
         
@@ -291,19 +305,19 @@
 
           <div class="controls-row">
             <button class="btn-icon" aria-label="上一首">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/>
               </svg>
             </button>
 
             <button class="btn-icon btn-main" id="playBtn" aria-label="播放/暂停">
-              <svg id="playIcon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
               </svg>
             </button>
 
             <button class="btn-icon" aria-label="下一首">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>
               </svg>
             </button>
@@ -330,26 +344,6 @@
   </div>
 
   <script>
-    const scaleWrapper = document.getElementById('scaleWrapper');
-    const baseWidth = 380;
-    const baseHeight = 190;
-
-    // 实时监听 Notion 嵌入框大小变化并按比例等比缩放
-    function handleResize() {
-      const windowWidth = window.innerWidth - 16;
-      const windowHeight = window.innerHeight - 16;
-      
-      const scaleX = windowWidth / baseWidth;
-      const scaleY = windowHeight / baseHeight;
-      const scale = Math.min(scaleX, scaleY);
-
-      scaleWrapper.style.transform = `scale(${scale})`;
-    }
-
-    window.addEventListener('resize', handleResize);
-    handleResize();
-
-    // 播放逻辑
     const playerCard = document.getElementById('playerCard');
     const playBtn = document.getElementById('playBtn');
     const playIcon = document.getElementById('playIcon');
