@@ -22,7 +22,7 @@
       align-items: center;
     }
 
-    /* 容器定义：开启容器查询，外部拉多大，内部就缩放多大 */
+    /* 最外层容器：四周留出充分的 padding 空间，给外阴影自然渐变过度，绝不让边界切断阴影 */
     .player-container {
       width: 100%;
       height: 100%;
@@ -30,31 +30,31 @@
       justify-content: center;
       align-items: center;
       container-type: inline-size;
-      padding: 3cqw; /* 留足阴影扩散的空间，防止阴影被边框截断 */
+      padding: 6cqw 8cqw 6cqw 6cqw; /* 特别加大右侧Padding，确保右侧阴影完全展示 */
     }
 
-    /* 最外层大底座卡片 - 优化柔和弥散阴影 */
+    /* 最外层大底座卡片 - 宽度适应容器并留出阴影空间 */
     .outer-card {
       width: 100%;
       padding: 3.5cqw;
       background: #f3f6fa;
       border-radius: 5cqw;
       box-shadow: 
-        1.5cqw 2cqw 4cqw -0.5cqw rgba(166, 180, 200, 0.35),
-        3cqw 4cqw 8cqw -1cqw rgba(166, 180, 200, 0.2),
-        -1.5cqw -1.5cqw 4cqw rgba(255, 255, 255, 0.95);
+        1.5cqw 2cqw 3.5cqw rgba(166, 180, 200, 0.4),
+        3cqw 4cqw 7cqw rgba(166, 180, 200, 0.25),
+        -1.5cqw -1.5cqw 3.5cqw rgba(255, 255, 255, 0.95);
       position: relative;
     }
 
-    /* 内层主要播放器卡片 - 优化柔和过渡 */
+    /* 内层主要播放器卡片 */
     .player-card {
       background: #f5f8fc;
       border-radius: 4cqw;
       padding: 4.5cqw;
       box-shadow: 
-        inset 0.8cqw 0.8cqw 1.8cqw rgba(166, 180, 200, 0.18),
+        inset 0.8cqw 0.8cqw 1.8cqw rgba(166, 180, 200, 0.2),
         inset -0.8cqw -0.8cqw 1.8cqw rgba(255, 255, 255, 0.85),
-        1cqw 2cqw 5cqw -0.5cqw rgba(166, 180, 200, 0.25);
+        1cqw 2cqw 4cqw rgba(166, 180, 200, 0.25);
       display: flex;
       align-items: center;
       gap: 4.5cqw;
@@ -69,7 +69,7 @@
       background: #f3f6fa;
       padding: 1cqw;
       box-shadow: 
-        1cqw 1.5cqw 3cqw rgba(166, 180, 200, 0.3),
+        1cqw 1.5cqw 3cqw rgba(166, 180, 200, 0.35),
         -1cqw -1cqw 3cqw rgba(255, 255, 255, 0.9),
         inset 0.4cqw 0.4cqw 0.8cqw rgba(166, 180, 200, 0.15);
       flex-shrink: 0;
