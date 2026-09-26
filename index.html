@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>精致缩小版黑胶播放器</title>
+  <title>响应式缩放黑胶播放器</title>
   <style>
     * {
       box-sizing: border-box;
@@ -11,19 +11,30 @@
       padding: 0;
     }
 
-    body {
+    html, body {
+      width: 100%;
+      height: 100%;
       background: transparent;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      min-height: 100vh;
+      overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 8px;
     }
 
-    /* 最外层大底座卡片（整体尺寸缩至 380px） */
+    /* 整体缩放包裹层：根据窗口/嵌入框宽高度自动计算最佳缩放比例 */
+    .scale-wrapper {
+      width: 380px; /* 基准原始宽度 */
+      height: auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform-origin: center center;
+    }
+
+    /* 最外层大底座卡片 */
     .outer-card {
-      width: 380px;
+      width: 100%;
       padding: 14px;
       background: #f3f6fa;
       border-radius: 22px;
@@ -108,7 +119,6 @@
       height: 7px;
       background: #4881c2;
       border-radius: 50%;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
     }
 
     /* 右侧控制与信息区域 */
@@ -165,14 +175,12 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
     }
 
     .btn-icon:active {
       transform: scale(0.9);
     }
 
-    /* 主播放/暂停按钮 */
     .btn-main {
       width: 30px;
       height: 30px;
@@ -181,12 +189,6 @@
       box-shadow: 
         3px 3px 6px rgba(166, 180, 200, 0.45),
         -3px -3px 6px rgba(255, 255, 255, 0.9);
-    }
-
-    .btn-main:active {
-      box-shadow: 
-        inset 2px 2px 4px rgba(166, 180, 200, 0.4),
-        inset -2px -2px 4px rgba(255, 255, 255, 0.8);
     }
 
     /* 进度条样式 */
@@ -224,7 +226,6 @@
       box-shadow: 1px 1px 3px rgba(120, 150, 190, 0.4);
     }
 
-    /* 时间文本 */
     .time-labels {
       display: flex;
       justify-content: space-between;
@@ -235,7 +236,6 @@
       font-weight: 400;
     }
 
-    /* 底部开关键装饰 */
     .bottom-indicator {
       margin-top: 10px;
       display: flex;
@@ -265,74 +265,91 @@
 </head>
 <body>
 
-  <div class="outer-card">
-    <div class="player-card" id="playerCard">
-      
-      <!-- 左侧唱片 -->
-      <div class="vinyl-wrapper">
-        <div class="vinyl-disk">
-          <div class="vinyl-center-outer">
-            <div class="vinyl-center-dot"></div>
+  <!-- 动态响应式缩放容器 -->
+  <div class="scale-wrapper" id="scaleWrapper">
+    <div class="outer-card">
+      <div class="player-card" id="playerCard">
+        
+        <div class="vinyl-wrapper">
+          <div class="vinyl-disk">
+            <div class="vinyl-center-outer">
+              <div class="vinyl-center-dot"></div>
+            </div>
           </div>
+        </div>
+
+        <div class="right-content">
+          <div class="song-title">wave of w music</div>
+          <div class="artist-name">Music Trainer</div>
+
+          <div class="waveform-box">
+            <svg viewBox="0 0 200 40" preserveAspectRatio="none">
+              <path id="wavePathBg" d="" fill="none" stroke="#d5e1ef" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path id="wavePath" d="" fill="none" stroke="#7eb2e9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <div class="controls-row">
+            <button class="btn-icon" aria-label="上一首">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/>
+              </svg>
+            </button>
+
+            <button class="btn-icon btn-main" id="playBtn" aria-label="播放/暂停">
+              <svg id="playIcon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+              </svg>
+            </button>
+
+            <button class="btn-icon" aria-label="下一首">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="progress-section">
+            <div class="progress-bar-bg" id="progressBg">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="time-labels">
+              <span id="currentTime">00:00</span>
+              <span id="duration">04:17</span>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      <!-- 右侧控制区 -->
-      <div class="right-content">
-        <div class="song-title">wave of w music</div>
-        <div class="artist-name">Music Trainer</div>
-
-        <!-- 音频波形图 -->
-        <div class="waveform-box">
-          <svg viewBox="0 0 200 40" preserveAspectRatio="none">
-            <path id="wavePathBg" d="" fill="none" stroke="#d5e1ef" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path id="wavePath" d="" fill="none" stroke="#7eb2e9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-
-        <!-- 播放控制 -->
-        <div class="controls-row">
-          <button class="btn-icon" aria-label="上一首">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/>
-            </svg>
-          </button>
-
-          <button class="btn-icon btn-main" id="playBtn" aria-label="播放/暂停">
-            <svg id="playIcon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-            </svg>
-          </button>
-
-          <button class="btn-icon" aria-label="下一首">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>
-            </svg>
-          </button>
-        </div>
-
-        <!-- 进度条 -->
-        <div class="progress-section">
-          <div class="progress-bar-bg" id="progressBg">
-            <div class="progress-fill" id="progressFill"></div>
-          </div>
-          <div class="time-labels">
-            <span id="currentTime">00:00</span>
-            <span id="duration">04:17</span>
-          </div>
-        </div>
-
+      <div class="bottom-indicator">
+        <div class="small-dot"></div>
+        <div class="small-bar"></div>
       </div>
-    </div>
-
-    <!-- 底部开关键装饰 -->
-    <div class="bottom-indicator">
-      <div class="small-dot"></div>
-      <div class="small-bar"></div>
     </div>
   </div>
 
   <script>
+    const scaleWrapper = document.getElementById('scaleWrapper');
+    const baseWidth = 380;
+    const baseHeight = 190;
+
+    // 实时监听 Notion 嵌入框大小变化并按比例等比缩放
+    function handleResize() {
+      const windowWidth = window.innerWidth - 16;
+      const windowHeight = window.innerHeight - 16;
+      
+      const scaleX = windowWidth / baseWidth;
+      const scaleY = windowHeight / baseHeight;
+      const scale = Math.min(scaleX, scaleY);
+
+      scaleWrapper.style.transform = `scale(${scale})`;
+    }
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    // 播放逻辑
     const playerCard = document.getElementById('playerCard');
     const playBtn = document.getElementById('playBtn');
     const playIcon = document.getElementById('playIcon');
@@ -343,7 +360,6 @@
     const currentTimeEl = document.getElementById('currentTime');
 
     let isPlaying = true;
-    let animFrameId = null;
     let phase = 0;
     let currentProgress = 0.35;
     const totalDuration = 257;
@@ -388,7 +404,7 @@
       wavePath.setAttribute('d', pathData);
       wavePathBg.setAttribute('d', pathData);
 
-      animFrameId = requestAnimationFrame(updateFrame);
+      requestAnimationFrame(updateFrame);
     }
 
     playBtn.addEventListener('click', () => {
