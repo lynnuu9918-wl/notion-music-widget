@@ -11,12 +11,3 @@ const playlist = [
     src: "./music/王铮亮, 王珮瑜 - 渭水钓翁.mp3",
     lyricId: "song_1790441880313"
   }, // <-- 这里补上了关键的逗号
-  {
-    id: "song_002",
-    title: "晴天",
-    artist: "周杰伦",
-    duration: 269,
-    src: "./music/qingtian.mp3",
-    lyricId: "song_002"
-  }
-];
