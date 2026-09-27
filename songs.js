@@ -11,3 +11,11 @@ const playlist = [
     src: "./music/王铮亮, 王珮瑜 - 渭水钓翁.mp3",
     lyricId: "song_1790441880313"
   }, // <-- 这里补上了关键的逗号
+  {
+    id: "song_1790484169186",
+    title: "心在跳 (Live)",
+    artist: "王珮瑜",
+    duration: 296,
+    src: "./music/王珮瑜 - 心在跳 (Live).mp3",
+    lyricId: "song_1790484169186"
+  },
