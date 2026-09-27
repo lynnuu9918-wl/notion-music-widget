@@ -433,17 +433,21 @@
     </div>
   </div>
 
-  <!-- 引入外部文件：修正了带 s 的文件名 -->
+  <!-- 新增：真实的音频播放标签 -->
+  <audio id="audioPlayer"></audio>
+
+  <!-- 引入外部文件 -->
   <script src="lyrics.js"></script>
   <script src="songs.js"></script>
   <script>
     let currentTrackIndex = 0;
-    let isPlaying = true;
+    let isPlaying = false; // 初始设为 false，依靠手动点击或加载播发
     let phase = 0;
     let currentProgress = 0;
     let lastLyricText = "";
 
     // DOM 元素
+    const audioPlayer = document.getElementById('audioPlayer'); // 获取原生音频对象
     const playerCard = document.getElementById('playerCard');
     const playBtn = document.getElementById('playBtn');
     const playIcon = document.getElementById('playIcon');
@@ -462,6 +466,7 @@
 
     // 时间格式化
     function formatTime(secs) {
+      if (isNaN(secs)) return "00:00";
       const mins = Math.floor(secs / 60).toString().padStart(2, '0');
       const s = Math.floor(secs % 60).toString().padStart(2, '0');
       return `${mins}:${s}`;
@@ -474,6 +479,16 @@
       const track = playlist[currentTrackIndex];
       songTitleEl.innerText = `${track.title} - ${track.artist}`;
       durationEl.innerText = formatTime(track.duration);
+
+      // 【兼容关键点】：支持 src 或 url 两种属性写法
+      const audioPath = track.src || track.url;
+      if (audioPath) {
+        audioPlayer.src = audioPath;
+        if (isPlaying) {
+          audioPlayer.play().catch(() => {});
+        }
+      }
+
       currentProgress = 0;
       lastLyricText = "";
       updateLyrics(0);
@@ -535,19 +550,17 @@
       return d;
     }
 
-    // 主渲染帧循环
+    // 主渲染帧循环（同步真实 MP3 播放时间）
     function updateFrame() {
       if (playlist && playlist.length > 0) {
-        const currentTrack = playlist[currentTrackIndex];
-
-        if (isPlaying) {
+        if (isPlaying && audioPlayer.duration) {
           phase += 1;
-          currentProgress += 0.0003;
-          if (currentProgress > 1) currentProgress = 0;
+          const currSecs = audioPlayer.currentTime;
+          currentProgress = currSecs / audioPlayer.duration;
 
           progressFill.style.width = `${(currentProgress * 100).toFixed(1)}%`;
-          const currSecs = currentProgress * currentTrack.duration;
           currentTimeEl.innerText = formatTime(currSecs);
+          durationEl.innerText = formatTime(audioPlayer.duration);
 
           updateLyrics(currSecs);
         }
@@ -571,6 +584,9 @@
         
         item.addEventListener('click', (e) => {
           e.stopPropagation();
+          isPlaying = true;
+          playerCard.classList.add('playing');
+          playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
           loadTrack(i);
           playlistPanel.classList.remove('active');
         });
@@ -597,9 +613,11 @@
       if (isPlaying) {
         playerCard.classList.add('playing');
         playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+        audioPlayer.play().catch(() => {});
       } else {
         playerCard.classList.remove('playing');
         playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        audioPlayer.pause();
       }
     });
 
@@ -614,16 +632,24 @@
       loadTrack(newIndex);
     });
 
+    // 播放结束自动播放下一首
+    audioPlayer.addEventListener('ended', () => {
+      let newIndex = (currentTrackIndex + 1) % playlist.length;
+      loadTrack(newIndex);
+    });
+
     progressBg.addEventListener('click', (e) => {
       const rect = progressBg.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       currentProgress = Math.max(0, Math.min(1, clickX / rect.width));
       progressFill.style.width = `${(currentProgress * 100).toFixed(1)}%`;
       
-      const currentTrack = playlist[currentTrackIndex];
-      const currSecs = currentProgress * currentTrack.duration;
-      currentTimeEl.innerText = formatTime(currSecs);
-      updateLyrics(currSecs);
+      if (audioPlayer.duration) {
+        const currSecs = currentProgress * audioPlayer.duration;
+        audioPlayer.currentTime = currSecs;
+        currentTimeEl.innerText = formatTime(currSecs);
+        updateLyrics(currSecs);
+      }
     });
 
     playlistToggleBtn.addEventListener('click', (e) => {
@@ -638,7 +664,6 @@
     // 初始化运行
     renderPlaylist();
     loadTrack(0);
-    playerCard.classList.add('playing');
     updateFrame();
   </script>
 </body>
