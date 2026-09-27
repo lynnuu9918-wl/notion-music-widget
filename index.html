@@ -433,7 +433,7 @@
     </div>
   </div>
 
-  <!-- 引入外部文件：先引入歌词，再引入歌曲列表，最后执行控制逻辑 -->
+  <!-- 引入外部文件：修正了带 s 的文件名 -->
   <script src="lyrics.js"></script>
   <script src="songs.js"></script>
   <script>
@@ -472,7 +472,7 @@
       if (!playlist || playlist.length === 0) return;
       currentTrackIndex = index;
       const track = playlist[currentTrackIndex];
-      songTitleEl.innerText = track.title;
+      songTitleEl.innerText = `${track.title} - ${track.artist}`;
       durationEl.innerText = formatTime(track.duration);
       currentProgress = 0;
       lastLyricText = "";
@@ -483,15 +483,19 @@
     // 动态更新单行跟随歌词
     function updateLyrics(currentSecs) {
       const track = playlist[currentTrackIndex];
-      if (!track || !track.lyrics || track.lyrics.length === 0) {
+      if (!track) return;
+
+      const currentLyrics = lyricsDatabase ? lyricsDatabase[track.lyricId] : null;
+
+      if (!currentLyrics || currentLyrics.length === 0) {
         lyricLineEl.innerText = "暂无歌词";
         return;
       }
 
-      let activeLyric = track.lyrics[0].text;
-      for (let i = 0; i < track.lyrics.length; i++) {
-        if (currentSecs >= track.lyrics[i].time) {
-          activeLyric = track.lyrics[i].text;
+      let activeLyric = currentLyrics[0].text;
+      for (let i = 0; i < currentLyrics.length; i++) {
+        if (currentSecs >= currentLyrics[i].time) {
+          activeLyric = currentLyrics[i].text;
         } else {
           break;
         }
