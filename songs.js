@@ -2,7 +2,7 @@
    歌曲文件数据库 (songs.js)
    这里专门录入歌曲文件信息，并通过 lyricId 关联 lyrics.js 里的歌词
    ========================================== */
-const songList = [
+const playlist = [
   {
     id: "song_1790441880313",
     title: "渭水钓翁",
