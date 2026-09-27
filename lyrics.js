@@ -100,4 +100,4 @@ const lyricsDatabase = {
     { time: 243, text: "走过天涯海角 最后才知道" },
     { time: 258, text: "听得见你心在跳 最重要" }
   ],
- 
+ };
