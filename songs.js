@@ -19,3 +19,4 @@ const playlist = [
     src: "./music/王珮瑜 - 心在跳 (Live).mp3",
     lyricId: "song_1790484169186"
   },
+];
