@@ -72,15 +72,4 @@ const lyricsDatabase = {
     { time: 220, text: "几向斜阳叹白头" }
   ],
 
-  // 对应歌曲 ID: song_002 的歌词
-  "song_002": [
-    { time: 0, text: "故事的小黄花 从出生那年就飘着" },
-    { time: 15, text: "童年的荡秋千 随记忆一直晃到现在" },
-    { time: 32, text: "Re So So Si Do Si La So La Si Si Si Si La Si La So" },
-    { time: 50, text: "吹着前奏望着天空 我想起花瓣试着掉落" },
-    { time: 75, text: "为你烘托 刮风这天我试过握着你手" },
-    { time: 105, text: "但偏偏 雨渐渐 大到我看你不见" },
-    { time: 140, text: "还要多久 我才能在你身边" },
-    { time: 180, text: "等到放晴的那天 也许我会比较好一点" }
-  ]
-};
+ 
