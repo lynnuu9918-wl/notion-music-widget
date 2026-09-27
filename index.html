@@ -22,7 +22,6 @@
       align-items: center;
     }
 
-    /* 最外层容器 */
     .player-container {
       width: 100%;
       height: 100%;
@@ -33,7 +32,6 @@
       padding: 6cqw 8cqw 6cqw 6cqw;
     }
 
-    /* 最外层大底座卡片 */
     .outer-card {
       width: 100%;
       padding: 3.5cqw;
@@ -46,7 +44,6 @@
       position: relative;
     }
 
-    /* 内层主要播放器卡片 */
     .player-card {
       background: #f5f8fc;
       border-radius: 4cqw;
@@ -61,7 +58,6 @@
       position: relative;
     }
 
-    /* 左侧唱片外框 */
     .vinyl-wrapper {
       width: 28cqw;
       height: 28cqw;
@@ -76,7 +72,6 @@
       position: relative;
     }
 
-    /* 唱片盘主体 */
     .vinyl-disk {
       width: 100%;
       height: 100%;
@@ -103,7 +98,6 @@
       to { transform: rotate(360deg); }
     }
 
-    /* 唱片中心金属圆环 */
     .vinyl-center-outer {
       width: 9cqw;
       height: 9cqw;
@@ -123,7 +117,6 @@
       border-radius: 50%;
     }
 
-    /* 右侧控制与信息区域 */
     .right-content {
       flex-grow: 1;
       display: flex;
@@ -133,7 +126,6 @@
       position: relative;
     }
 
-    /* 歌名 */
     .song-title {
       font-size: 2.8cqw;
       color: #8da4c4;
@@ -147,7 +139,6 @@
       text-align: center;
     }
 
-    /* 单行跟随歌词 */
     .lyric-line {
       font-size: 2cqw;
       color: #a0b2c6;
@@ -168,7 +159,6 @@
       transform: translateY(2px);
     }
 
-    /* 波形线 SVG 容器 */
     .waveform-box {
       width: 100%;
       height: 7cqw;
@@ -181,7 +171,6 @@
       height: 100%;
     }
 
-    /* 播放控制按钮栏 */
     .controls-row {
       display: flex;
       align-items: center;
@@ -213,7 +202,6 @@
       transform: scale(0.9);
     }
 
-    /* 右侧播放列表按钮 */
     .playlist-toggle-btn {
       position: absolute;
       right: 0.5cqw;
@@ -229,7 +217,6 @@
       color: #7db0e8;
     }
 
-    /* 弹出式播放列表抽屉 */
     .playlist-panel {
       position: absolute;
       bottom: 12cqw;
@@ -275,7 +262,6 @@
       background: #e2eefb;
     }
 
-    /* 主播放/暂停按钮 */
     .btn-main {
       width: 7.5cqw;
       height: 7.5cqw;
@@ -286,7 +272,6 @@
         -0.8cqw -0.8cqw 2cqw rgba(255, 255, 255, 0.9);
     }
 
-    /* 进度条样式 */
     .progress-section {
       width: 100%;
     }
@@ -321,7 +306,6 @@
       box-shadow: 0.3cqw 0.4cqw 1cqw rgba(120, 150, 190, 0.35);
     }
 
-    /* 时间文本 */
     .time-labels {
       display: flex;
       justify-content: space-between;
@@ -332,7 +316,6 @@
       font-weight: 400;
     }
 
-    /* 底部装饰 */
     .bottom-indicator {
       margin-top: 2.2cqw;
       display: flex;
@@ -394,7 +377,7 @@
 
             <button class="btn-icon btn-main" id="playBtn" aria-label="播放/暂停">
               <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                <path d="M8 5v14l11-7z"/>
               </svg>
             </button>
 
@@ -433,21 +416,17 @@
     </div>
   </div>
 
-  <!-- 新增：真实的音频播放标签 -->
-  <audio id="audioPlayer"></audio>
+  <audio id="audioPlayer" preload="auto"></audio>
 
-  <!-- 引入外部文件 -->
   <script src="lyrics.js"></script>
   <script src="songs.js"></script>
   <script>
     let currentTrackIndex = 0;
-    let isPlaying = false; // 初始设为 false，依靠手动点击或加载播发
+    let isPlaying = false;
     let phase = 0;
-    let currentProgress = 0;
     let lastLyricText = "";
 
-    // DOM 元素
-    const audioPlayer = document.getElementById('audioPlayer'); // 获取原生音频对象
+    const audioPlayer = document.getElementById('audioPlayer');
     const playerCard = document.getElementById('playerCard');
     const playBtn = document.getElementById('playBtn');
     const playIcon = document.getElementById('playIcon');
@@ -464,43 +443,75 @@
     const playlistToggleBtn = document.getElementById('playlistToggleBtn');
     const playlistPanel = document.getElementById('playlistPanel');
 
-    // 时间格式化
     function formatTime(secs) {
-      if (isNaN(secs)) return "00:00";
+      if (isNaN(secs) || !isFinite(secs)) return "00:00";
       const mins = Math.floor(secs / 60).toString().padStart(2, '0');
       const s = Math.floor(secs % 60).toString().padStart(2, '0');
       return `${mins}:${s}`;
     }
 
-    // 切歌与加载歌曲信息
-    function loadTrack(index) {
-      if (!playlist || playlist.length === 0) return;
+    function setPlayState(active) {
+      isPlaying = active;
+      if (active) {
+        playerCard.classList.add('playing');
+        playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      } else {
+        playerCard.classList.remove('playing');
+        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      }
+    }
+
+    function loadTrack(index, autoPlay = false) {
+      if (typeof playlist === 'undefined' || !playlist.length) return;
+      
       currentTrackIndex = index;
       const track = playlist[currentTrackIndex];
       songTitleEl.innerText = `${track.title} - ${track.artist}`;
-      durationEl.innerText = formatTime(track.duration);
+      durationEl.innerText = formatTime(track.duration || 0);
 
-      // 【兼容关键点】：支持 src 或 url 两种属性写法
       const audioPath = track.src || track.url;
       if (audioPath) {
         audioPlayer.src = audioPath;
-        if (isPlaying) {
-          audioPlayer.play().catch(() => {});
-        }
+        audioPlayer.load();
       }
 
-      currentProgress = 0;
       lastLyricText = "";
       updateLyrics(0);
       updatePlaylistHighlight();
+
+      if (autoPlay) {
+        playAudio();
+      } else {
+        setPlayState(false);
+      }
     }
 
-    // 动态更新单行跟随歌词
-    function updateLyrics(currentSecs) {
-      const track = playlist[currentTrackIndex];
-      if (!track) return;
+    function playAudio() {
+      const playPromise = audioPlayer.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          setPlayState(true);
+        }).catch((err) => {
+          console.error("播放中断/失败:", err);
+          setPlayState(false);
+          alert("无法播放该音频，请检查 songs.js 中该歌曲的音频链接（URL/SRC）是否有效。");
+        });
+      }
+    }
 
-      const currentLyrics = lyricsDatabase ? lyricsDatabase[track.lyricId] : null;
+    function togglePlay() {
+      if (isPlaying) {
+        audioPlayer.pause();
+        setPlayState(false);
+      } else {
+        playAudio();
+      }
+    }
+
+    function updateLyrics(currentSecs) {
+      if (typeof playlist === 'undefined' || !playlist[currentTrackIndex]) return;
+      const track = playlist[currentTrackIndex];
+      const currentLyrics = (typeof lyricsDatabase !== 'undefined') ? lyricsDatabase[track.lyricId] : null;
 
       if (!currentLyrics || currentLyrics.length === 0) {
         lyricLineEl.innerText = "暂无歌词";
@@ -526,7 +537,6 @@
       }
     }
 
-    // 波形线生成
     const baseAmplitudes = [
       0, 0, 5, -8, 4, -4, 12, -12, 6, -6, 2, -2, 15, -15, 10, -10,
       5, -5, 18, -18, 8, -8, 4, -4, 12, -12, 6, -6, 2, -2, 10, -10,
@@ -550,20 +560,17 @@
       return d;
     }
 
-    // 主渲染帧循环（同步真实 MP3 播放时间）
     function updateFrame() {
-      if (playlist && playlist.length > 0) {
-        if (isPlaying && audioPlayer.duration) {
-          phase += 1;
-          const currSecs = audioPlayer.currentTime;
-          currentProgress = currSecs / audioPlayer.duration;
+      if (isPlaying && audioPlayer.duration) {
+        phase += 1;
+        const currSecs = audioPlayer.currentTime;
+        const progressRatio = currSecs / audioPlayer.duration;
 
-          progressFill.style.width = `${(currentProgress * 100).toFixed(1)}%`;
-          currentTimeEl.innerText = formatTime(currSecs);
-          durationEl.innerText = formatTime(audioPlayer.duration);
+        progressFill.style.width = `${(progressRatio * 100).toFixed(1)}%`;
+        currentTimeEl.innerText = formatTime(currSecs);
+        durationEl.innerText = formatTime(audioPlayer.duration);
 
-          updateLyrics(currSecs);
-        }
+        updateLyrics(currSecs);
       }
 
       const pathData = generateWavePath(phase);
@@ -573,10 +580,9 @@
       requestAnimationFrame(updateFrame);
     }
 
-    // 渲染播放列表菜单
     function renderPlaylist() {
       playlistPanel.innerHTML = '';
-      if (!playlist) return;
+      if (typeof playlist === 'undefined') return;
       playlist.forEach((track, i) => {
         const item = document.createElement('div');
         item.className = `playlist-item ${i === currentTrackIndex ? 'playing' : ''}`;
@@ -584,10 +590,7 @@
         
         item.addEventListener('click', (e) => {
           e.stopPropagation();
-          isPlaying = true;
-          playerCard.classList.add('playing');
-          playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-          loadTrack(i);
+          loadTrack(i, true);
           playlistPanel.classList.remove('active');
         });
         
@@ -595,7 +598,6 @@
       });
     }
 
-    // 更新列表中当前高亮项目
     function updatePlaylistHighlight() {
       const items = playlistPanel.querySelectorAll('.playlist-item');
       items.forEach((item, index) => {
@@ -607,45 +609,36 @@
       });
     }
 
-    // 交互事件
-    playBtn.addEventListener('click', () => {
-      isPlaying = !isPlaying;
-      if (isPlaying) {
-        playerCard.classList.add('playing');
-        playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-        audioPlayer.play().catch(() => {});
-      } else {
-        playerCard.classList.remove('playing');
-        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-        audioPlayer.pause();
-      }
-    });
+    playBtn.addEventListener('click', togglePlay);
 
     prevBtn.addEventListener('click', () => {
       let newIndex = currentTrackIndex - 1;
       if (newIndex < 0) newIndex = playlist.length - 1;
-      loadTrack(newIndex);
+      loadTrack(newIndex, isPlaying);
     });
 
     nextBtn.addEventListener('click', () => {
       let newIndex = (currentTrackIndex + 1) % playlist.length;
-      loadTrack(newIndex);
+      loadTrack(newIndex, isPlaying);
     });
 
-    // 播放结束自动播放下一首
     audioPlayer.addEventListener('ended', () => {
       let newIndex = (currentTrackIndex + 1) % playlist.length;
-      loadTrack(newIndex);
+      loadTrack(newIndex, true);
+    });
+
+    audioPlayer.addEventListener('loadedmetadata', () => {
+      durationEl.innerText = formatTime(audioPlayer.duration);
     });
 
     progressBg.addEventListener('click', (e) => {
       const rect = progressBg.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
-      currentProgress = Math.max(0, Math.min(1, clickX / rect.width));
-      progressFill.style.width = `${(currentProgress * 100).toFixed(1)}%`;
+      const progressRatio = Math.max(0, Math.min(1, clickX / rect.width));
+      progressFill.style.width = `${(progressRatio * 100).toFixed(1)}%`;
       
       if (audioPlayer.duration) {
-        const currSecs = currentProgress * audioPlayer.duration;
+        const currSecs = progressRatio * audioPlayer.duration;
         audioPlayer.currentTime = currSecs;
         currentTimeEl.innerText = formatTime(currSecs);
         updateLyrics(currSecs);
@@ -661,9 +654,9 @@
       playlistPanel.classList.remove('active');
     });
 
-    // 初始化运行
+    // 初始化
     renderPlaylist();
-    loadTrack(0);
+    loadTrack(0, false);
     updateFrame();
   </script>
 </body>
