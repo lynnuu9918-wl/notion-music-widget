@@ -20,6 +20,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      user-select: none; /* 防止拖拽时选中文本 */
     }
 
     .player-container {
@@ -276,29 +277,32 @@
       width: 100%;
     }
 
+    /* 扩大热区方便拖拽 */
     .progress-bar-bg {
       width: 100%;
-      height: 1cqw;
+      height: 1.2cqw;
       background: #e2eaf3;
-      border-radius: 0.5cqw;
+      border-radius: 0.6cqw;
       box-shadow: inset 0.2cqw 0.2cqw 0.5cqw rgba(166, 180, 200, 0.3);
       position: relative;
       cursor: pointer;
+      padding: 0;
     }
 
     .progress-fill {
       width: 0%;
       height: 100%;
       background: #7db0e8;
-      border-radius: 0.5cqw;
+      border-radius: 0.6cqw;
       position: relative;
+      pointer-events: none; /* 禁用内部指针响应，提升拖拽性能 */
     }
 
     .progress-fill::after {
       content: '';
       position: absolute;
-      right: -1cqw;
-      top: -0.8cqw;
+      right: -1.2cqw;
+      top: -0.7cqw;
       width: 2.6cqw;
       height: 2.6cqw;
       background: #ffffff;
@@ -423,6 +427,8 @@
   <script>
     let currentTrackIndex = 0;
     let isPlaying = false;
+    let isDragging = false; // 拖拽状态标记
+    let dragRatio = 0;     // 拖拽时的临时进度比例
     let phase = 0;
     let lastLyricText = "";
 
@@ -494,7 +500,6 @@
         }).catch((err) => {
           console.error("播放中断/失败:", err);
           setPlayState(false);
-          alert("无法播放该音频，请检查 songs.js 中该歌曲的音频链接（URL/SRC）是否有效。");
         });
       }
     }
@@ -560,9 +565,13 @@
       return d;
     }
 
+    // 核心改进：非拖拽状态下才跟随音频播放时间更新 UI
     function updateFrame() {
-      if (isPlaying && audioPlayer.duration) {
+      if (isPlaying) {
         phase += 1;
+      }
+
+      if (!isDragging && audioPlayer.duration) {
         const currSecs = audioPlayer.currentTime;
         const progressRatio = currSecs / audioPlayer.duration;
 
@@ -609,6 +618,60 @@
       });
     }
 
+    // --- 拖拽与点击进度条优化算法 ---
+    function calcRatio(e) {
+      const rect = progressBg.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clickX = clientX - rect.left;
+      return Math.max(0, Math.min(1, clickX / rect.width));
+    }
+
+    function handleDragMove(e) {
+      if (!isDragging) return;
+      dragRatio = calcRatio(e);
+      progressFill.style.width = `${(dragRatio * 100).toFixed(1)}%`;
+      
+      if (audioPlayer.duration) {
+        const tempSecs = dragRatio * audioPlayer.duration;
+        currentTimeEl.innerText = formatTime(tempSecs);
+        updateLyrics(tempSecs);
+      }
+    }
+
+    function handleDragEnd(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      
+      if (audioPlayer.duration) {
+        audioPlayer.currentTime = dragRatio * audioPlayer.duration;
+      }
+
+      document.removeEventListener('mousemove', handleDragMove);
+      document.removeEventListener('mouseup', handleDragEnd);
+      document.removeEventListener('touchmove', handleDragMove);
+      document.removeEventListener('touchend', handleDragEnd);
+    }
+
+    progressBg.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      dragRatio = calcRatio(e);
+      progressFill.style.width = `${(dragRatio * 100).toFixed(1)}%`;
+
+      document.addEventListener('mousemove', handleDragMove);
+      document.addEventListener('mouseup', handleDragEnd);
+    });
+
+    // 适配移动端/触摸屏拖拽
+    progressBg.addEventListener('touchstart', (e) => {
+      isDragging = true;
+      dragRatio = calcRatio(e);
+      progressFill.style.width = `${(dragRatio * 100).toFixed(1)}%`;
+
+      document.addEventListener('touchmove', handleDragMove, { passive: true });
+      document.addEventListener('touchend', handleDragEnd);
+    }, { passive: true });
+
+    // 控件按钮事件绑定
     playBtn.addEventListener('click', togglePlay);
 
     prevBtn.addEventListener('click', () => {
@@ -629,20 +692,6 @@
 
     audioPlayer.addEventListener('loadedmetadata', () => {
       durationEl.innerText = formatTime(audioPlayer.duration);
-    });
-
-    progressBg.addEventListener('click', (e) => {
-      const rect = progressBg.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const progressRatio = Math.max(0, Math.min(1, clickX / rect.width));
-      progressFill.style.width = `${(progressRatio * 100).toFixed(1)}%`;
-      
-      if (audioPlayer.duration) {
-        const currSecs = progressRatio * audioPlayer.duration;
-        audioPlayer.currentTime = currSecs;
-        currentTimeEl.innerText = formatTime(currSecs);
-        updateLyrics(currSecs);
-      }
     });
 
     playlistToggleBtn.addEventListener('click', (e) => {
